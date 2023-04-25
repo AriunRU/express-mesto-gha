@@ -1,17 +1,17 @@
 const Card = require('../models/card');
 
+const NOT_FOUND_ERROR_CODE = 404;
+const BAD_REQUEST_ERROR_CODE = 400;
+const INTERNAL_SERVER_ERROR_CODE = 500;
+
 const getCards = (req, res) => {
   Card.find({})
     .populate(['owner', 'likes'])
     .then((cards) => {
       res.status(200).send(cards);
     })
-    .catch((err) => {
-      if (err) {
-        res.status(400).send({ message: 'Переданы неверные данные' });
-        return;
-      }
-      res.status(500).send({ message: 'Ошибка сервера' });
+    .catch(() => {
+      res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
     });
 };
 
@@ -25,32 +25,36 @@ const createCards = (req, res) => {
     owner: ownerId,
   })
     .then((newCard) => {
-      if (!req.body.name || !req.body.link) {
-        res.status(400).send({ message: '400 — Переданы некорректные данные.' });
+      if (!newCard) {
+        res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные.' });
         return;
       }
       res.status(201).send({ data: newCard });
     })
     .catch((err) => {
-      if (err) {
-        res.status(400).send({ message: 'Неверные данные, переданные при создании пользователя' });
-        return;
+      if (err.name === 'ValidationError') {
+        res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
+      } else {
+        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
-      res.status(500).send({ message: 'Ошибка сервера' });
     });
 };
 
 const deleteCard = (req, res) => {
   Card.findByIdAndDelete(req.params.cardId)
     .then((card) => {
+      if (!card) {
+        res.status(NOT_FOUND_ERROR_CODE).send({ message: '404 — Переданы некорректные данные _id для удаления карточки.' });
+        return;
+      }
       res.status(200).send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: '400 — Переданы некорректные данные _id для удаления карточки.' });
-        return;
+        res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
+      } else {
+        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
-      res.status(500).send({ message: 'Карточка запроса не найдена' });
     });
 };
 
@@ -63,16 +67,16 @@ const likeCard = (req, res) => {
     .populate(['owner', 'likes'])
     .then((card) => {
       if (!card) {
-        res.status(404).send({ message: 'Карточка запроса не найдена' });
+        res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Карточка запроса не найдена' });
       }
       res.status(200).send({ data: card });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: '400 — Переданы некорректные данные _id для удаления карточки.' });
-        return;
+    .catch((error) => {
+      if (error.name === 'CastError') {
+        res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные при создании пользователя.' });
+      } else {
+        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
-      res.status(500).send({ message: 'Карточка запроса не найдена' });
     });
 };
 
@@ -84,16 +88,16 @@ const deleteLike = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(404).send({ message: 'Карточка запроса не найдена. Некорректный ID' });
+        res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Карточка запроса не найдена. Некорректный ID' });
       }
       res.status(200).send({ data: card });
     })
     .catch((err) => {
-      if (err) {
-        res.status(400).send({ message: 'Некорректный ID' });
-        return;
+      if (err.name === 'CastError') {
+        res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
+      } else {
+        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
-      res.status(500).send({ message: 'Некорректный ID' });
     });
 };
 
