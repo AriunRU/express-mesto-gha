@@ -2,20 +2,21 @@ const Card = require('../models/card');
 
 const NOT_FOUND_ERROR_CODE = 404;
 const BAD_REQUEST_ERROR_CODE = 400;
-const INTERNAL_SERVER_ERROR_CODE = 500;
+const IntervalServerError = require('../errors/internal-server-error');
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   Card.find({})
     .populate(['owner', 'likes'])
     .then((cards) => {
       res.status(200).send(cards);
     })
     .catch(() => {
-      res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
-    });
+      throw new IntervalServerError('Ошибка сервера');
+    })
+    .catch(next);
 };
 
-const createCards = (req, res) => {
+const createCards = (req, res, next) => {
   const ownerId = req.user.id;
   const { name, link } = req.body;
 
@@ -34,13 +35,15 @@ const createCards = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
-    });
+    })
+    .catch(() => {
+      throw new IntervalServerError('Ошибка сервера');
+    })
+    .catch(next);
 };
 
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   Card.findByIdAndDelete(req.params.cardId)
     .then((card) => {
       if (!card) {
@@ -52,13 +55,15 @@ const deleteCard = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
-    });
+    })
+    .catch(() => {
+      throw new IntervalServerError('Ошибка сервера');
+    })
+    .catch(next);
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -71,16 +76,18 @@ const likeCard = (req, res) => {
       }
       res.status(200).send({ data: card });
     })
-    .catch((error) => {
-      if (error.name === 'CastError') {
+    .catch((err) => {
+      if (err.name === 'CastError') {
         res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные при создании пользователя.' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
-    });
+    })
+    .catch(() => {
+      throw new IntervalServerError('Ошибка сервера');
+    })
+    .catch(next);
 };
 
-const deleteLike = (req, res) => {
+const deleteLike = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -95,10 +102,12 @@ const deleteLike = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
-    });
+    })
+    .catch(() => {
+      throw new IntervalServerError('Ошибка сервера');
+    })
+    .catch(next);
 };
 
 module.exports = {
