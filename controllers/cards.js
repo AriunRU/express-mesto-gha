@@ -17,14 +17,10 @@ const getCards = (req, res, next) => {
 };
 
 const createCards = (req, res, next) => {
-  const ownerId = req.user.id;
+  const owner = req.user.id;
   const { name, link } = req.body;
 
-  Card.create({
-    name,
-    link,
-    owner: ownerId,
-  })
+  Card.create({ name, link, owner })
     .then((newCard) => {
       if (!newCard) {
         res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные.' });
