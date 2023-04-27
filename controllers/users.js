@@ -23,10 +23,6 @@ const createUsers = (req, res) => {
     });
 };
 
-// const login = (req, res) => {
-
-// }
-
 const getUserInfo = (req, res) => {
   User.findById(req.params.id)
     .then((user) => {
