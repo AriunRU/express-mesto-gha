@@ -4,22 +4,13 @@ const NOT_FOUND_ERROR_CODE = 404;
 const BAD_REQUEST_ERROR_CODE = 400;
 const INTERNAL_SERVER_ERROR_CODE = 500;
 
-const createUsers = (req, res) => {
-  const {
-    name, about, avatar, email, password,
-  } = req.body;
-  User.create({
-    name, about, avatar, email, password,
-  })
-    .then((user) => {
-      res.status(201).send(user);
+const getUsers = (req, res) => {
+  User.find({})
+    .then((users) => {
+      res.status(200).send(users);
     })
-    .catch((error) => {
-      if (error.name === 'ValidationError') {
-        res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные при создании пользователя.' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
-      }
+    .catch(() => {
+      res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
     });
 };
 
@@ -41,13 +32,22 @@ const getUserInfo = (req, res) => {
     });
 };
 
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => {
-      res.status(200).send(users);
+const createUsers = (req, res) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  User.create({
+    name, about, avatar, email, password,
+  })
+    .then((user) => {
+      res.status(201).send(user);
     })
-    .catch(() => {
-      res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
+        res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные при создании пользователя.' });
+      } else {
+        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
+      }
     });
 };
 

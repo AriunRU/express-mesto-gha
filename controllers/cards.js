@@ -1,3 +1,4 @@
+const { ValidationError } = require('mongoose').Error;
 const Card = require('../models/card');
 
 const NOT_FOUND_ERROR_CODE = 404;
@@ -17,19 +18,14 @@ const getCards = (req, res, next) => {
 };
 
 const createCards = (req, res) => {
-  const owner = req.user.id;
   const { name, link } = req.body;
 
-  Card.create({ name, link, owner })
-    .then((newCard) => {
-      /* if (!newCard) {
-        res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные' });
-        return;
-      } */
-      res.status(201).send({ data: newCard });
+  Card.create({ name, link, owner: req.user._id })
+    .then((card) => {
+      res.status(201).send(card);
     })
     .catch((error) => {
-      if (error.name === 'ValidationError') {
+      if (error instanceof ValidationError) {
         res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
       } else {
         res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
