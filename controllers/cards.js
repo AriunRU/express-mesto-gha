@@ -22,20 +22,19 @@ const createCards = (req, res, next) => {
 
   Card.create({ name, link, owner })
     .then((newCard) => {
-      if (!newCard) {
+      /* if (!newCard) {
         res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные' });
         return;
-      }
+      } */
       res.status(201).send({ data: newCard });
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
         res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
       } else {
         res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
-    })
-    .catch(next);
+    });
 };
 
 const deleteCard = (req, res, next) => {
