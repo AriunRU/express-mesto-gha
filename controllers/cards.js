@@ -1,39 +1,34 @@
-const { ValidationError } = require('mongoose').Error;
 const Card = require('../models/card');
 
 const NOT_FOUND_ERROR_CODE = 404;
 const BAD_REQUEST_ERROR_CODE = 400;
 const INTERNAL_SERVER_ERROR_CODE = 500;
 
-const getCards = (req, res, next) => {
+const getCards = (req, res) => {
   Card.find({})
     .populate(['owner', 'likes'])
-    .then((cards) => {
-      res.status(200).send(cards);
-    })
+    .then((cards) => res.status(200).send(cards))
     .catch(() => {
       res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
-    })
-    .catch(next);
+    });
 };
 
-const createCards = (req, res) => {
+const createCard = (req, res) => {
   const { name, link } = req.body;
+  const owner = req.user.id;
 
-  Card.create({ name, link, owner: req.user._id })
-    .then((newCard) => {
-      res.status(201).send(newCard);
-    })
+  Card.create({ name, link, owner })
+    .then((card) => res.status(201).send(card))
     .catch((err) => {
-      if (err.name instanceof ValidationError) {
-        res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
+      if (err.name === 'ValidationError') {
+        res.status(BAD_REQUEST_ERROR_CODE).send({ message: err.message });
       } else {
         res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
     });
 };
 
-const deleteCard = (req, res, next) => {
+const deleteCard = (req, res) => {
   Card.findByIdAndDelete(req.params.cardId)
     .then((card) => {
       if (!card) {
@@ -48,11 +43,10 @@ const deleteCard = (req, res, next) => {
       } else {
         res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
-    })
-    .catch(next);
+    });
 };
 
-const likeCard = (req, res, next) => {
+const likeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -71,11 +65,10 @@ const likeCard = (req, res, next) => {
       } else {
         res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
-    })
-    .catch(next);
+    });
 };
 
-const dislikeCard = (req, res, next) => {
+const dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -93,12 +86,11 @@ const dislikeCard = (req, res, next) => {
       } else {
         res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
-    })
-    .catch(next);
+    });
 };
 
 module.exports = {
-  createCards,
+  createCard,
   getCards,
   deleteCard,
   likeCard,
