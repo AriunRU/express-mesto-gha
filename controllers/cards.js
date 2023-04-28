@@ -80,7 +80,7 @@ const likeCard = (req, res, next) => {
     .catch(next);
 };
 
-const deleteLike = (req, res, next) => {
+const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -107,5 +107,5 @@ module.exports = {
   getCards,
   deleteCard,
   likeCard,
-  deleteLike,
+  dislikeCard,
 };
