@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 require('mongoose-type-url');
-// test
+
 const cardSchema = new mongoose.Schema({
   name: {
     type: String,

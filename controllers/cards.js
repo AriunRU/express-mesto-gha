@@ -21,11 +21,11 @@ const createCards = (req, res) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
-    .then((card) => {
-      res.status(201).send(card);
+    .then((newCard) => {
+      res.status(201).send(newCard);
     })
-    .catch((error) => {
-      if (error instanceof ValidationError) {
+    .catch((err) => {
+      if (err.name instanceof ValidationError) {
         res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
       } else {
         res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
