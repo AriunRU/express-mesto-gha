@@ -16,7 +16,7 @@ const getCards = (req, res, next) => {
     .catch(next);
 };
 
-const createCards = (req, res, next) => {
+const createCards = (req, res) => {
   const owner = req.user.id;
   const { name, link } = req.body;
 
