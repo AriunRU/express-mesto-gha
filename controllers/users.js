@@ -6,9 +6,7 @@ const INTERNAL_SERVER_ERROR_CODE = 500;
 
 const getUsers = (req, res) => {
   User.find({})
-    .then((users) => {
-      res.status(200).send(users);
-    })
+    .then((users) => res.status(200).send(users))
     .catch(() => {
       res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
     });
@@ -17,15 +15,15 @@ const getUsers = (req, res) => {
 const getUserInfo = (req, res) => {
   User.findById(req.params.id)
     .then((user) => {
-      if (!user) {
+      /* if (!user) {
         res.status(NOT_FOUND_ERROR_CODE).send({ message: '404 - Несуществующий ID пользователя' });
         return;
-      }
+      } */
       res.status(200).send(user);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные при создании пользователя.' });
+        res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные при получении пользователя.' });
       } else {
         res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
@@ -39,9 +37,7 @@ const createUsers = (req, res) => {
   User.create({
     name, about, avatar, email, password,
   })
-    .then((user) => {
-      res.status(201).send(user);
-    })
+    .then((user) => res.status(201).send(user))
     .catch((error) => {
       if (error.name === 'ValidationError') {
         res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные при создании пользователя.' });
