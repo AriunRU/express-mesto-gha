@@ -8,9 +8,7 @@ const getCards = (req, res) => {
   Card.find({})
     .populate(['owner', 'likes'])
     .then((cards) => res.status(200).send(cards))
-    .catch(() => {
-      res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
-    });
+    .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' }));
 };
 
 const createCard = (req, res) => {
@@ -19,9 +17,9 @@ const createCard = (req, res) => {
 
   Card.create({ name, link, owner })
     .then((card) => res.status(201).send(card))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST_ERROR_CODE).send({ message: err.message });
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
+        res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные для создания элемента' });
       } else {
         res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
@@ -37,8 +35,8 @@ const deleteCard = (req, res) => {
       }
       res.status(200).send(card);
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
+    .catch((error) => {
+      if (error.name === 'CastError') {
         res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
       } else {
         res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
@@ -59,9 +57,9 @@ const likeCard = (req, res) => {
       }
       res.status(200).send({ data: card });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные при создании пользователя.' });
+    .catch((error) => {
+      if (error.name === 'CastError') {
+        res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
       } else {
         res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
       }
@@ -80,8 +78,8 @@ const dislikeCard = (req, res) => {
       }
       res.status(200).send({ data: card });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
+    .catch((error) => {
+      if (error.name === 'CastError') {
         res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
       } else {
         res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
