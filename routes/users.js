@@ -5,7 +5,7 @@ const {
 
 usersRouter.post('/', createUsers);
 usersRouter.get('/', getUsers);
-usersRouter.get('/:id', getUserInfo);
+usersRouter.get('/:_id', getUserInfo);
 usersRouter.patch('/me', updateUser);
 usersRouter.patch('/me/avatar', updateAvatar);
 

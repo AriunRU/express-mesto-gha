@@ -13,7 +13,7 @@ const getUsers = (req, res) => {
 };
 
 const getUserInfo = (req, res) => {
-  User.findById(req.params.id)
+  User.findById(req.params._id)
     .then((user) => {
       if (!user) {
         res.status(NOT_FOUND_ERROR_CODE).send({ message: '404 - Несуществующий ID пользователя' });
@@ -48,7 +48,7 @@ const createUsers = (req, res) => {
 };
 
 const updateUser = (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user._id;
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(
@@ -76,7 +76,7 @@ const updateUser = (req, res) => {
 };
 
 const updateAvatar = (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user._id;
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(
