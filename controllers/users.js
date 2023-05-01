@@ -6,7 +6,7 @@ const INTERNAL_SERVER_ERROR_CODE = 500;
 
 const getUsers = (req, res) => {
   User.find({})
-    .then((users) => res.status(200).send(users))
+    .then((users) => res.send(users))
     .catch(() => {
       res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
     });
@@ -19,7 +19,7 @@ const getUserInfo = (req, res) => {
         res.status(NOT_FOUND_ERROR_CODE).send({ message: '404 - Несуществующий ID пользователя' });
         return;
       }
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
@@ -62,8 +62,9 @@ const updateUser = (req, res) => {
     .then((user) => {
       if (!user) {
         res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Пользователь не найден' });
+      } else {
+        res.send(user);
       }
-      res.status(200).send(user);
     })
     .catch((error) => {
       if (error.name === 'ValidationError') {
@@ -89,8 +90,9 @@ const updateAvatar = (req, res) => {
     .then((user) => {
       if (!user) {
         res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Пользователь не найден' });
+      } else {
+        res.send(user);
       }
-      res.status(200).send(user);
     })
     .catch((error) => {
       if (error.name === 'ValidationError') {

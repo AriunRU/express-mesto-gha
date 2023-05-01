@@ -7,7 +7,7 @@ const INTERNAL_SERVER_ERROR_CODE = 500;
 const getCards = (req, res) => {
   Card.find({})
     .populate(['owner', 'likes'])
-    .then((cards) => res.status(200).send(cards))
+    .then((cards) => res.send(cards))
     .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' }));
 };
 
@@ -33,7 +33,7 @@ const deleteCard = (req, res) => {
         res.status(NOT_FOUND_ERROR_CODE).send({ message: '404 — Переданы некорректные данные для удаления элемента' });
         return;
       }
-      res.status(200).send(card);
+      res.send(card);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
@@ -54,8 +54,9 @@ const likeCard = (req, res) => {
     .then((card) => {
       if (!card) {
         res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Элемент запроса не найден' });
+      } else {
+        res.send({ data: card });
       }
-      res.status(200).send({ data: card });
     })
     .catch((error) => {
       if (error.name === 'CastError') {
@@ -75,8 +76,9 @@ const dislikeCard = (req, res) => {
     .then((card) => {
       if (!card) {
         res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Элемент запроса не найден' });
+      } else {
+        res.send({ data: card });
       }
-      res.status(200).send({ data: card });
     })
     .catch((error) => {
       if (error.name === 'CastError') {
