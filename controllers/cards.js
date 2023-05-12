@@ -41,7 +41,7 @@ const deleteCard = (req, res, next) => {
       if (error.name === 'CastError') {
         next(new ValidationError('Переданы некорректные данные для создания элемента'));
       }
-      return next(error);
+      next(error);
     });
 };
 
