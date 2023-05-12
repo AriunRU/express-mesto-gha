@@ -33,9 +33,9 @@ const deleteCard = (req, res, next) => {
     .orFail(new NotFoundError('Переданы некорректные данные для удаления элемента'))
     .then((card) => {
       if (String(card.owner) !== userId) {
-        throw new ForbiddenError('Удалить карточку может только владелец.');
+        throw new ForbiddenError('Удалить карточку может только владелец');
       }
-      res.send('Карточка успешно удалена.');
+      res.send({ message: 'Карточка успешно удалена' });
     })
     .catch((error) => {
       if (error.name === 'CastError') {
