@@ -1,21 +1,44 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const router = require('./routes');
+const { errors } = require('celebrate');
 
-const { PORT = 3000 } = process.env;
+const routerUsers = require('./routes/users');
+const routerCards = require('./routes/cards');
+const { NOT_FOUND } = require('./utils/error-constants');
+const { login } = require('./controllers/users');
+const { createUsers } = require('./controllers/users');
+const auth = require('./middlewares/auth');
+const errorMiddleware = require('./middlewares/error');
+const { validateLogin, validateRegister } = require('./middlewares/validation');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const app = express();
-mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
+const { PORT = 3000, PATH_MONGO = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
+mongoose.set('strictQuery', false);
 
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-app.use((req, res, next) => {
-  req.user = { _id: '6448144a782e23886c3a68eb' };
-  next();
+mongoose.connect(PATH_MONGO, {
+  useNewUrlParser: true,
 });
 
-app.use(router);
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(requestLogger);
+
+app.post('/signin', validateLogin, login);
+app.post('/signup', validateRegister, createUsers);
+
+app.use(auth);
+app.use('/users', routerUsers);
+app.use('/cards', routerCards);
+
+app.use((req, res) => {
+  res.status(NOT_FOUND).send({ message: 'Такой страницы не существует.' });
+});
+
+app.use(errorLogger);
+app.use(errors());
+app.use(errorMiddleware);
 
 app.listen(PORT);

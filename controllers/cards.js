@@ -1,50 +1,51 @@
 const Card = require('../models/card');
 
-const NOT_FOUND_ERROR_CODE = 404;
-const BAD_REQUEST_ERROR_CODE = 400;
-const INTERNAL_SERVER_ERROR_CODE = 500;
+const NotFoundError = require('../errors/not-found-error');
+const ValidationError = require('../errors/validation-error');
+const ForbiddenError = require('../errors/forbidden-error');
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   Card.find({})
     .populate(['owner', 'likes'])
     .then((cards) => res.send(cards))
-    .catch(() => res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' }));
+    .catch(next);
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
 
   Card.create({ name, link, owner })
-    .then((card) => res.status(201).send(card))
+    .then((card) => res.send(card))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные для создания элемента' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
+        next(new ValidationError('Переданы некорректные данные для создания элемента'));
       }
+      return next(error);
     });
 };
 
-const deleteCard = (req, res) => {
-  Card.findByIdAndDelete(req.params.cardId)
+const deleteCard = (req, res, next) => {
+  const { cardId } = req.params;
+  const userId = req.user._id;
+
+  Card.findByIdAndDelete(cardId)
+    .orFail(new NotFoundError('Переданы некорректные данные для удаления элемента'))
     .then((card) => {
-      if (!card) {
-        res.status(NOT_FOUND_ERROR_CODE).send({ message: '404 — Переданы некорректные данные для удаления элемента' });
-        return;
+      if (String(card.owner) !== userId) {
+        throw new ForbiddenError('Удалить карточку может только владелец.');
       }
-      res.send(card);
+      res.send('Карточка успешно удалена.');
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
+        next(new ValidationError('Переданы некорректные данные для создания элемента'));
       }
+      return next(error);
     });
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -53,21 +54,20 @@ const likeCard = (req, res) => {
     .populate(['owner', 'likes'])
     .then((card) => {
       if (!card) {
-        res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Элемент запроса не найден' });
+        res.status(NotFoundError).send({ message: 'Элемент запроса не найден' });
       } else {
         res.send({ data: card });
       }
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
+        next(new ValidationError('Переданы некорректные данные для создания элемента'));
       }
+      return next(error);
     });
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -75,24 +75,19 @@ const dislikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Элемент запроса не найден' });
+        res.status(NotFoundError).send({ message: 'Элемент запроса не найден' });
       } else {
         res.send({ data: card });
       }
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        res.status(BAD_REQUEST_ERROR_CODE).send({ message: 'Некорректный запрос' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
+        next(new ValidationError('Переданы некорректные данные для создания элемента'));
       }
+      return next(error);
     });
 };
 
 module.exports = {
-  createCard,
-  getCards,
-  deleteCard,
-  likeCard,
-  dislikeCard,
+  createCard, getCards, deleteCard, likeCard, dislikeCard,
 };

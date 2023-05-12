@@ -1,53 +1,97 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
-const NOT_FOUND_ERROR_CODE = 404;
-const BAD_REQUEST_ERROR_CODE = 400;
-const INTERNAL_SERVER_ERROR_CODE = 500;
+const NotFoundError = require('../errors/not-found-error');
+const ValidationError = require('../errors/validation-error');
+const UnauthorisedError = require('../errors/unauthorized-error');
+const ConflictError = require('../errors/conflict-error');
 
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.send(users))
-    .catch(() => {
-      res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
-    });
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  User.findOne({ email }).select('+password')
+    .then((user) => {
+      if (!user) {
+        throw new UnauthorisedError('Неправильные почта или пароль.');
+      }
+      return { matched: bcrypt.compare(password, user.password), user };
+    })
+    .then(({ matched, user }) => {
+      if (!matched) {
+        throw new UnauthorisedError('Неправильные почта или пароль');
+      }
+      const token = jwt.sign(
+        { _id: user._id },
+        'some-secret-key',
+        { expiresIn: '7d' },
+      );
+      return res.send({ token });
+    })
+    .catch(next);
 };
 
-const getUserInfo = (req, res) => {
+const getUsers = (req, res, next) => {
+  User.find({})
+    .then((users) => res.send(users))
+    .catch(next);
+};
+
+const getUserInfo = (req, res, next) => {
   User.findById(req.params._id)
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND_ERROR_CODE).send({ message: '404 - Несуществующий ID пользователя' });
+        next(new NotFoundError('404 - Несуществующий ID пользователя'));
         return;
       }
       res.send(user);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные при получении пользователя.' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
+        next(new ValidationError('Переданы некорректные данные для создания элемента'));
       }
+      return next(error);
     });
 };
 
-const createUsers = (req, res) => {
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((user) => res.send(user))
+    .catch(next);
+};
+
+const createUsers = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  User.create({
-    name, about, avatar, email, password,
-  })
-    .then((user) => res.status(201).send(user))
+
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    }))
+    .then((user) => res.send({
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      email: user.email,
+      _id: user._id,
+    }))
     .catch((error) => {
-      if (error.name === 'ValidationError') {
-        res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные при создании пользователя.' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
+      if (error.code === 11000) {
+        next(new ConflictError('Пользователь с такой почтой уже зарегистрирован.'));
       }
+      if (error.name === 'ValidationError') {
+        next(new ValidationError('Переданы некорректные данные пользователя.'));
+      }
+      return next(error);
     });
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const userId = req.user._id;
   const { name, about } = req.body;
 
@@ -61,21 +105,20 @@ const updateUser = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Пользователь не найден' });
+        next(new NotFoundError('Пользователь не найден'));
       } else {
         res.send(user);
       }
     })
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные при смене имени.' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
+        next(new ValidationError('Переданы некорректные данные для создания элемента'));
       }
+      return next(error);
     });
 };
 
-const updateAvatar = (req, res) => {
+const updateAvatar = (req, res, next) => {
   const userId = req.user._id;
   const { avatar } = req.body;
 
@@ -89,24 +132,19 @@ const updateAvatar = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Пользователь не найден' });
+        next(new NotFoundError('Пользователь не найден'));
       } else {
         res.send(user);
       }
     })
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        res.status(BAD_REQUEST_ERROR_CODE).send({ message: '400 — Переданы некорректные данные при изменении аватара.' });
-      } else {
-        res.status(INTERNAL_SERVER_ERROR_CODE).send({ message: 'Ошибка сервера' });
+        next(new ValidationError('Переданы некорректные данные для создания элемента'));
       }
+      return next(error);
     });
 };
 
 module.exports = {
-  createUsers,
-  getUsers,
-  getUserInfo,
-  updateUser,
-  updateAvatar,
+  createUsers, getUsers, getUserInfo, updateUser, login, updateAvatar, getCurrentUser,
 };

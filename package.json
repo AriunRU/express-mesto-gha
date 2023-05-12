@@ -12,11 +12,17 @@
   "author": "Kirill Golovin",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
+    "celebrate": "^15.0.1",
     "express": "^4.18.2",
+    "express-winston": "^4.2.0",
+    "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.5",
     "mongoose-type-url": "^2.1.0",
-    "normalize-path": "^3.0.0"
+    "normalize-path": "^3.0.0",
+    "validator": "^13.9.0",
+    "winston": "^3.8.2"
   },
   "devDependencies": {
     "eslint": "^8.39.0",
