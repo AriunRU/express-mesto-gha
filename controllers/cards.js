@@ -51,13 +51,11 @@ const likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .populate(['owner', 'likes'])
     .then((card) => {
-      if (!card) {
-        res.status(NotFoundError).send({ message: 'Элемент запроса не найден' });
-      } else {
-        res.send({ data: card });
+      if (card) {
+        return res.send(card);
       }
+      throw new NotFoundError('Элемент запроса не найден');
     })
     .catch((error) => {
       if (error.name === 'CastError') {
@@ -74,11 +72,10 @@ const dislikeCard = (req, res, next) => {
     { new: true },
   )
     .then((card) => {
-      if (!card) {
-        res.status(NotFoundError).send({ message: 'Элемент запроса не найден' });
-      } else {
-        res.send({ data: card });
+      if (card) {
+        return res.send(card);
       }
+      throw new NotFoundError('Элемент запроса не найден');
     })
     .catch((error) => {
       if (error.name === 'CastError') {

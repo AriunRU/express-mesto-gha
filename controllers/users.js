@@ -38,19 +38,18 @@ const getUsers = (req, res, next) => {
 };
 
 const getUserInfo = (req, res, next) => {
-  User.findById(req.params._id)
+  User.findById(req.params.userId)
     .then((user) => {
-      if (!user) {
-        next(new NotFoundError('404 - Несуществующий ID пользователя'));
-        return;
+      if (user) {
+        return res.send(user);
       }
-      res.send(user);
+      throw new NotFoundError('404 - Несуществующий ID пользователя');
     })
     .catch((error) => {
       if (error.name === 'CastError') {
         next(new ValidationError('Переданы некорректные данные для создания элемента'));
       }
-      return next(error);
+      next(error);
     });
 };
 
@@ -92,26 +91,18 @@ const createUsers = (req, res, next) => {
 };
 
 const updateUser = (req, res, next) => {
-  const userId = req.user._id;
-  const { name, about } = req.body;
-
-  User.findByIdAndUpdate(
-    userId,
-    { name, about },
-    {
-      new: true,
-      runValidators: true,
-    },
-  )
+  User.findByIdAndUpdate(req.user._id, req.body, {
+    new: true,
+    runValidators: true,
+  })
     .then((user) => {
-      if (!user) {
-        next(new NotFoundError('Пользователь не найден'));
-      } else {
-        res.send(user);
+      if (user) {
+        return res.send(user);
       }
+      throw new NotFoundError('Пользователь не найден');
     })
     .catch((error) => {
-      if (error.name === 'ValidationError') {
+      if (error.name === 'ValidationError' || error.name === 'CastError') {
         next(new ValidationError('Переданы некорректные данные для создания элемента'));
       }
       return next(error);
@@ -119,26 +110,18 @@ const updateUser = (req, res, next) => {
 };
 
 const updateAvatar = (req, res, next) => {
-  const userId = req.user._id;
-  const { avatar } = req.body;
-
-  User.findByIdAndUpdate(
-    userId,
-    { avatar },
-    {
-      new: true,
-      runValidators: true,
-    },
-  )
+  User.findByIdAndUpdate(req.user._id, req.body, {
+    new: true,
+    runValidators: true,
+  })
     .then((user) => {
-      if (!user) {
-        next(new NotFoundError('Пользователь не найден'));
-      } else {
-        res.send(user);
+      if (user) {
+        return res.send(user);
       }
+      throw new NotFoundError('Пользователь не найден');
     })
     .catch((error) => {
-      if (error.name === 'ValidationError') {
+      if (error.name === 'ValidationError' || error.name === 'CastError') {
         next(new ValidationError('Переданы некорректные данные для создания элемента'));
       }
       return next(error);
