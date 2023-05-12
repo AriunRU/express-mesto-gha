@@ -6,17 +6,17 @@ const userSchema = new mongoose.Schema({
     type: String,
     minlength: 2,
     maxlength: 30,
-    default: 'Жак-Ив Кото',
+    default: 'Жак-Ив Кусто',
   },
   about: {
     type: String,
     minlength: 2,
     maxlength: 30,
-    default: 'Исследователь Котанов',
+    default: 'Исследователь',
   },
   avatar: {
     type: String,
-    default: 'https://i.pinimg.com/originals/19/09/66/1909661fe79010eb3f7a6dd1c239a5bc.jpg',
+    default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
   },
   email: {
     type: String,
