@@ -1,4 +1,4 @@
-const { NOT_UNIQUE } = require('../utils/error-constants');
+const { NOT_UNIQUE } = require('../utils/utils');
 
 class ConflictError extends Error {
   constructor(message) {

@@ -12,8 +12,8 @@ module.exports = (req, res, next) => {
     const token = authorization.replace('Bearer ', '');
     const payload = jwt.verify(token, 'some-secret-key');
     req.user = payload;
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
   }
 
   next();
