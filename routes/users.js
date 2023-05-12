@@ -10,7 +10,7 @@ const {
 
 usersRouter.get('/', getUsers);
 usersRouter.get('/me', validateToken, getCurrentUser);
-usersRouter.get('/:_id', validateUserId, getUserInfo);
+usersRouter.get('/:userId', validateUserId, getUserInfo);
 usersRouter.patch('/me', validateProfileUpdate, updateUser);
 usersRouter.patch('/me/avatar', validateAvatarUpdate, updateAvatar);
 
