@@ -1,12 +1,12 @@
-const { INTERNAL_SERVER_ERROR } = require('../utils/utils');
+const { SERVER_ERROR_500 } = require('../utils/utils');
 
 module.exports = (error, req, res, next) => {
-  const { statusCode = INTERNAL_SERVER_ERROR, message } = error;
+  const { statusCode = SERVER_ERROR_500, message } = error;
 
   res
     .status(statusCode)
     .send({
-      message: statusCode === INTERNAL_SERVER_ERROR // 500
+      message: statusCode === SERVER_ERROR_500
         ? 'Ошибка сервера.'
         : message,
     });

@@ -1,5 +1,5 @@
 const { celebrate, Joi } = require('celebrate');
-const { REGEX } = require('../utils/utils');
+const { REGEX } = require('./utils');
 
 const validateLogin = celebrate(
   {

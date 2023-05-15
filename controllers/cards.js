@@ -33,7 +33,7 @@ const deleteCard = (req, res, next) => {
     .orFail(new NotFoundError('Переданы некорректные данные для удаления элемента'))
     .then((card) => {
       if (String(card.owner) !== userId) {
-        throw new ForbiddenError('Удалить карточку может только владелец');
+        throw new ForbiddenError('Не достаточно полномочий для удаления элемента');
       }
       res.send({ message: 'Карточка успешно удалена' });
     })
@@ -55,7 +55,7 @@ const likeCard = (req, res, next) => {
       if (card) {
         return res.send(card);
       }
-      throw new NotFoundError('Элемент запроса не найден');
+      throw new NotFoundError('Элемент не найден');
     })
     .catch((error) => {
       if (error.name === 'CastError') {
@@ -75,7 +75,7 @@ const dislikeCard = (req, res, next) => {
       if (card) {
         return res.send(card);
       }
-      throw new NotFoundError('Элемент запроса не найден');
+      throw new NotFoundError('Элемент не найден');
     })
     .catch((error) => {
       if (error.name === 'CastError') {

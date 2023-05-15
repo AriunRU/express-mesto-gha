@@ -4,32 +4,8 @@ const User = require('../models/user');
 
 const NotFoundError = require('../errors/not-found-error');
 const ValidationError = require('../errors/validation-error');
-const UnauthorisedError = require('../errors/unauthorized-error');
+const UnauthorisedError = require('../errors/auth-error');
 const ConflictError = require('../errors/conflict-error');
-
-const login = (req, res, next) => {
-  const { email, password } = req.body;
-
-  User.findOne({ email }).select('+password')
-    .then((user) => {
-      if (!user) {
-        throw new UnauthorisedError('Неправильные почта или пароль.');
-      }
-      return { matched: bcrypt.compare(password, user.password), user };
-    })
-    .then(({ matched, user }) => {
-      if (!matched) {
-        throw new UnauthorisedError('Неправильные почта или пароль');
-      }
-      const token = jwt.sign(
-        { _id: user._id },
-        'some-secret-key',
-        { expiresIn: '7d' },
-      );
-      return res.send({ token });
-    })
-    .catch(next);
-};
 
 const getUsers = (req, res, next) => {
   User.find({})
@@ -43,7 +19,7 @@ const getUserInfo = (req, res, next) => {
       if (user) {
         return res.send(user);
       }
-      throw new NotFoundError('404 - Несуществующий ID пользователя');
+      throw new NotFoundError('Несуществующий ID пользователя');
     })
     .catch((error) => {
       if (error.name === 'CastError') {
@@ -81,10 +57,10 @@ const createUsers = (req, res, next) => {
     }))
     .catch((error) => {
       if (error.code === 11000) {
-        next(new ConflictError('Пользователь с такой почтой уже зарегистрирован.'));
+        next(new ConflictError('Пользователь с такой почтой уже зарегистрирован'));
       }
       if (error.name === 'ValidationError') {
-        next(new ValidationError('Переданы некорректные данные пользователя.'));
+        next(new ValidationError('Переданы некорректные данные для создания элемента'));
       }
       return next(error);
     });
@@ -126,6 +102,30 @@ const updateAvatar = (req, res, next) => {
       }
       return next(error);
     });
+};
+
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  User.findOne({ email }).select('+password')
+    .then((user) => {
+      if (!user) {
+        throw new UnauthorisedError('Неправильные почта или пароль.');
+      }
+      return { matched: bcrypt.compare(password, user.password), user };
+    })
+    .then(({ matched, user }) => {
+      if (!matched) {
+        throw new UnauthorisedError('Неправильные почта или пароль');
+      }
+      const token = jwt.sign(
+        { _id: user._id },
+        'some-secret-key',
+        { expiresIn: '7d' },
+      );
+      return res.send({ token });
+    })
+    .catch(next);
 };
 
 module.exports = {
