@@ -23,14 +23,13 @@ app.use('/users', routerUsers);
 app.use('/cards', routerCards);
 
 app.use((req, res) => {
-  res.status(NOT_FOUND_404).send({ message: 'Такой страницы не существует.' });
+  res.status(NOT_FOUND_404).send({ message: 'Такой страницы не существует' });
 });
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(requestLogger);
 app.use(errorLogger);
-
 app.use(errors());
 app.use(errorMiddleware);
 
