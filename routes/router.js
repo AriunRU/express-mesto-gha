@@ -3,8 +3,7 @@ const router = require('express').Router();
 const routerUsers = require('./users');
 const routerCards = require('./cards');
 const { NOT_FOUND_404 } = require('../utils/utils');
-const { login } = require('../controllers/users');
-const { createUsers } = require('../controllers/users');
+const { login, createUsers } = require('../controllers/users');
 const auth = require('../middlewares/auth');
 const { validateLogin, validateRegister } = require('../utils/validation');
 
