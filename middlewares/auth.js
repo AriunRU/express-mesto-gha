@@ -10,7 +10,7 @@ module.exports = (req, res, next) => {
     }
 
     const token = authorization.replace('Bearer ', '');
-    const payload = jwt.verify(token, 'some-secret-key');
+    const payload = jwt.verify(token, 'secret-key');
     req.user = payload;
   } catch (error) {
     next(error);
