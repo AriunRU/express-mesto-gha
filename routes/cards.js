@@ -5,10 +5,10 @@ const {
 } = require('../controllers/cards');
 
 const {
-  validateCardCreate, validateCardId,
+  validateCreateCard, validateCardId,
 } = require('../utils/validation');
 
-cardsRouter.post('/', validateCardCreate, createCard);
+cardsRouter.post('/', validateCreateCard, createCard);
 cardsRouter.get('/', getCards);
 cardsRouter.delete('/:cardId', validateCardId, deleteCard);
 cardsRouter.put('/:cardId/likes', validateCardId, likeCard);

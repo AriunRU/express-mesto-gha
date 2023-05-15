@@ -22,7 +22,7 @@ const validateRegister = celebrate(
   },
 );
 
-const validateProfileUpdate = celebrate(
+const validateUpdateProfile = celebrate(
   {
     body: Joi.object().keys({
       name: Joi.string().required().min(2).max(30),
@@ -31,7 +31,7 @@ const validateProfileUpdate = celebrate(
   },
 );
 
-const validateAvatarUpdate = celebrate(
+const validateUpdateAvatar = celebrate(
   {
     body: Joi.object().keys({
       avatar: Joi.string().required().pattern(REGEX),
@@ -47,7 +47,7 @@ const validateToken = celebrate(
   },
 );
 
-const validateCardCreate = celebrate(
+const validateCreateCard = celebrate(
   {
     body: Joi.object().keys({
       name: Joi.string().required().min(2).max(30),
@@ -75,10 +75,10 @@ const validateCardId = celebrate(
 module.exports = {
   validateLogin,
   validateRegister,
-  validateProfileUpdate,
-  validateAvatarUpdate,
+  validateUpdateProfile,
+  validateUpdateAvatar,
   validateToken,
-  validateCardCreate,
+  validateCreateCard,
   validateUserId,
   validateCardId,
 };

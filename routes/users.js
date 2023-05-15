@@ -5,13 +5,13 @@ const {
 } = require('../controllers/users');
 
 const {
-  validateProfileUpdate, validateAvatarUpdate, validateUserId, validateToken,
+  validateUpdateProfile, validateUpdateAvatar, validateUserId, validateToken,
 } = require('../utils/validation');
 
 usersRouter.get('/', getUsers);
 usersRouter.get('/me', validateToken, getCurrentUser);
 usersRouter.get('/:userId', validateUserId, getUserInfo);
-usersRouter.patch('/me', validateProfileUpdate, updateUser);
-usersRouter.patch('/me/avatar', validateAvatarUpdate, updateAvatar);
+usersRouter.patch('/me', validateUpdateProfile, updateUser);
+usersRouter.patch('/me/avatar', validateUpdateAvatar, updateAvatar);
 
 module.exports = usersRouter;
