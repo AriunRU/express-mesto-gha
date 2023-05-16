@@ -6,7 +6,7 @@ const {
 
 const {
   validateUpdateProfile, validateUpdateAvatar, validateUserId, validateToken,
-} = require('../utils/validation');
+} = require('../middlewares/validation');
 
 usersRouter.get('/', getUsers);
 usersRouter.get('/me', validateToken, getCurrentUser);

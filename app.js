@@ -3,14 +3,14 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
 const errorMiddleware = require('./middlewares/error');
-const { requestLogger, errorLogger } = require('./utils/logger');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const routerUsers = require('./routes/users');
 const routerCards = require('./routes/cards');
 const { NOT_FOUND_404 } = require('./utils/utils');
 const { login, createUsers } = require('./controllers/users');
 const auth = require('./middlewares/auth');
-const { validateLogin, validateRegister } = require('./utils/validation');
+const { validateLogin, validateRegister } = require('./middlewares/validation');
 
 const app = express();
 const { PORT = 3000, PATH_MONGO = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
