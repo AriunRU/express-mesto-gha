@@ -1,90 +1,74 @@
 const Card = require('../models/card');
+const {
+  CREATED_201,
+} = require('../constants/constants');
+const NotFoundError = require('../utils/customError/NotFoundError');
+const ForbiddenError = require('../utils/customError/ForbiddenError');
 
-const NotFoundError = require('../errors/not-found-error');
-const ValidationError = require('../errors/validation-error');
-const ForbiddenError = require('../errors/forbidden-error');
-
-const getCards = (req, res, next) => {
-  Card.find({})
-    .populate(['owner', 'likes'])
-    .then((cards) => res.send(cards))
-    .catch(next);
+const getAllCards = async (_, res, next) => {
+  try {
+    const cards = await Card.find({});
+    res.send(cards);
+  } catch (err) {
+    next(err);
+  }
 };
 
-const createCard = (req, res, next) => {
-  const { name, link } = req.body;
-  const owner = req.user._id;
-
-  Card.create({ name, link, owner })
-    .then((card) => res.send(card))
-    .catch((error) => {
-      if (error.name === 'ValidationError') {
-        next(new ValidationError('Переданы некорректные данные для создания элемента'));
-      }
-      return next(error);
-    });
-};
-
-const deleteCard = (req, res, next) => {
-  const { cardId } = req.params;
+const deleteCard = async (req, res, next) => {
+  const { id } = req.params;
   const userId = req.user._id;
 
-  Card.findByIdAndDelete(cardId)
-    .orFail(new NotFoundError('Переданы некорректные данные для удаления элемента'))
-    .then((card) => {
-      if (String(card.owner) !== userId) {
-        throw new ForbiddenError('Не достаточно полномочий для удаления элемента');
-      }
-      res.send({ message: 'Карточка успешно удалена' });
-    })
-    .catch((error) => {
-      if (error.name === 'CastError') {
-        next(new ValidationError('Переданы некорректные данные для создания элемента'));
-      }
-      next(error);
-    });
+  try {
+    const card = await Card.findById(id);
+    if (!card) {
+      throw new NotFoundError('Карточка не найдена');
+    }
+    const ownerId = card.owner._id.toString();
+    if (userId !== ownerId) {
+      throw new ForbiddenError('Нельзя удалять чужие карточки');
+    }
+    await Card.deleteOne(card);
+    res.send({ message: 'Карточка удалена' });
+  } catch (err) {
+    next(err);
+  }
 };
 
-const likeCard = (req, res, next) => {
-  Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $addToSet: { likes: req.user._id } },
-    { new: true },
-  )
-    .then((card) => {
-      if (card) {
-        return res.send(card);
-      }
-      throw new NotFoundError('Элемент не найден');
-    })
-    .catch((error) => {
-      if (error.name === 'CastError') {
-        next(new ValidationError('Переданы некорректные данные для создания элемента'));
-      }
-      return next(error);
-    });
+const createCard = async (req, res, next) => {
+  const { name, link } = req.body;
+  const { _id } = req.user;
+
+  try {
+    const makeCard = await Card.create({ name, link, owner: _id });
+    const card = await makeCard.populate('owner');
+    res.status(CREATED_201).send(card);
+  } catch (err) {
+    next(err);
+  }
 };
 
-const dislikeCard = (req, res, next) => {
-  Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $pull: { likes: req.user._id } },
-    { new: true },
-  )
-    .then((card) => {
-      if (card) {
-        return res.send(card);
-      }
-      throw new NotFoundError('Элемент не найден');
-    })
-    .catch((error) => {
-      if (error.name === 'CastError') {
-        next(new ValidationError('Переданы некорректные данные для создания элемента'));
-      }
-      return next(error);
-    });
+const likeSwitch = async (req, res, next) => {
+  const { id: cardId } = req.params;
+  const { _id: userId } = req.user;
+
+  try {
+    const card = await Card.findByIdAndUpdate(
+      cardId,
+      { [req.method === 'PUT' ? '$addToSet' : '$pull']: { likes: userId } },
+      { new: true },
+    );
+    if (!card) {
+      throw new NotFoundError('Карточка не найдена');
+    }
+    res.send(card);
+  } catch (err) {
+    next(err);
+  }
 };
 
 module.exports = {
-  createCard, getCards, deleteCard, likeCard, dislikeCard,
+  getAllCards,
+  deleteCard,
+  createCard,
+  likeSwitch,
 };

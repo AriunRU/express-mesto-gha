@@ -1,48 +1,34 @@
 const express = require('express');
+require('dotenv').config();
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
-const errorMiddleware = require('./middlewares/error');
+const cookieParser = require('cookie-parser');
+const router = require('./routes');
+const { handleError } = require('./utils/index');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
+const cors = require('./middlewares/useCors');
 
-const routerUsers = require('./routes/users');
-const routerCards = require('./routes/cards');
-const { login, createUsers } = require('./controllers/users');
-const auth = require('./middlewares/auth');
-const { validateLogin, validateRegister } = require('./middlewares/validation');
-
+const { PORT = 3000, MONGO_URL = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
 const app = express();
-const { PORT = 3000, PATH_MONGO = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
-mongoose.set('strictQuery', false);
 
-mongoose.connect(PATH_MONGO, {
+mongoose.connect(MONGO_URL, {
   useNewUrlParser: true,
 });
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.use(requestLogger);
 
-app.get('/crash-test', () => {
-  setTimeout(() => {
-    throw new Error('Сервер сейчас упадёт');
-  }, 0);
-});
-
-app.post('/signin', validateLogin, login);
-app.post('/signup', validateRegister, createUsers);
-
-app.use(auth);
-app.use('/users', routerUsers);
-app.use('/cards', routerCards);
-
-app.use((req, res, next) => {
-  new NotFoundError('Такой страницы не существует' )
-});
+app.use(cors);
+app.use(router);
 
 app.use(errorLogger);
-app.use(errors());
-app.use(errorMiddleware);
 
-app.listen(PORT);
+app.use(errors());
+app.use(handleError);
+
+app.listen(PORT, () => {
+  console.log('The service is running! Have fun!');
+});
